@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+	*{
+		padding:0;
+		margin:0;
+	}
+	#wrap{
+		width:1000px;
+		margin:110px auto;
+		position:relative;
+		overflow:hidden;
+		border-radius:6px;
+		height:409px;
+		cursor:pointer;
+	}
+	ul li{
+		list-style:none;
+		float:left;
+	}
+	ul{
+		width:100000px;	
+	}
+
+	#pre,#next{
+		position:absolute;
+		top:45%;
+		opacity:.5;
+		transform:scale(1,1);
+		transition:all .5s;
+	}
+	#pre:hover,#next:hover{
+		opacity:1;
+		transform:scale(1.3,1.3);
+	}
+	#pre{
+		left:8px;
+	}
+	#next{
+		right:8px;
+	}
+	.circle{
+		position:absolute;
+		left:43%;
+		bottom:10px;
+	}
+	.circle span{
+		display:inline-block;
+		width:20px;
+		height:20px;
+		border-radius:50%;
+		background:#999;
+		font-size:0;
+	}
+	span.focus{
+		background-color:#f99;
+	}
+	</style>
+</head>
+<body>
+<div id="wrap">
+	<ul style="margin-left:0;">
+		<li><img src="images/6.jpg" alt=""></li>
+		<li><img src="images/7.jpg" alt=""></li>
+		<li><img src="images/8.jpg" alt=""></li>
+		<li><img src="images/9.jpg" alt=""></li>
+		<li><img src="images/10.jpg" alt=""></li>
+		<li><img src="images/11.jpg" alt=""></li>
+	</ul>
+	<img src="images/1.png" alt="" id="pre">
+	<img src="images/2.png" alt="" id="next">
+	<div class="circle"></div>
+</div>
+<script>
+var pre=document.getElementById('pre');
+var next=document.getElementById("next");
+var lilist=document.getElementsByTagName('li');
+var ul=document.getElementsByTagName("ul")[0];
+var circle=document.getElementsByClassName('circle')[0];
+var n=0;/*记录当前图片的张数*/
+var sum=lilist.length;
+var w=1000;
+var isVirtualHas=false;
+var isAnimationHas=false;
+var m=0;/*记录图片当前真实的位置*/
+// 点击向后按钮
+next.onclick=function(){
+	if(!isAnimationHas){
+		n++;
+		if(n<sum){
+			m++;
+			animation("next");	
+		}
+		else{
+			firstLi=lilist[0].cloneNode(true);
+			ul.appendChild(firstLi);
+			m=0;
+			animation("next");
+		}
+	}
+}
+// 点击向前按钮
+pre.onclick=function(){
+	if(!isAnimationHas){
+		n--;
+		if(n!==-1){
+			m--;
+			animation("pre");
+		}
+		else{
+			// 克隆最后一张图片
+			lastLi=lilist[sum-1].cloneNode(true);
+			// 克隆好之后将其放到第一张前面
+			ul.insertBefore(lastLi,ul.firstChild);
+			// 克隆的图片应该去的真是位置
+			m=sum-1;
+			animation("pre");
+			ul.style.marginLeft=-1000+"px";
+			isVirtualHas = true;
+			n=0;
+		}
+	}
+}
+// 动画函数
+function animation(direction){
+	dotStatus();
+	var t=setInterval(function(){
+		isAnimationHas = true;
+		count=parseInt(ul.style.marginLeft)/*移动的距离*/
+		if(count!==-n*w){
+			// 匀速运动
+			// ul.style.marginLeft=count-40+"px";
+		}else{
+			clearInterval(t);
+			 isAnimationHas = false;
+			if(n==sum){
+				ul.style.marginLeft=0+"px";
+				ul.removeChild(firstLi);
+				n=0;
+			}
+			// 判断是否有虚拟图片存在
+			if(isVirtualHas){
+				ul.style.marginLeft=(-(sum-1)*w)+"px";
+				ul.removeChild(lastLi);
+				n=sum-1;
+				isVirtualHas=false;
+			}
+		return;
+		}
+		// 根据不同情况判断非匀速运动
+		if(direction=="next"){
+			ul.style.marginLeft=count+(Math.floor((n*(-w)-count)/12))+"px";
+		}
+		if(direction=="pre"){
+			ul.style.marginLeft=count+(Math.ceil((n*(-w)-count)/12))+"px";
+		}
+	},16)                          	
+}
+// 自动播放
+autoPlay = setInterval(function(){
+		next.onclick();/*调用函数*/
+},2700);
+ // 智能判断
+ // 鼠标进入页面
+wrap.onmouseenter = function(){
+     clearInterval(autoPlay);
+}
+// 鼠标离开
+wrap.onmouseleave = function(){
+	 autoPlay = setInterval(function(){
+	  	next.onclick();
+	},2700)
+}
+// 小圆点事件（初始化小圆点）
+// 由于图片张数不确定，所以不能直接在页面写入小圆点。可以在页面创建小圆点，使其随着图片张数的改变而动态改变
+for(var i=0;i<sum;i++){
+	var span=document.createElement("span");
+	span.setAttribute("index",i)
+	circle.appendChild(span);
+	spanlist=circle.getElementsByTagName("span");
+}
+spanlist[0].className="focus";
+//原点清除类以及添加类的函数
+function dotStatus(){
+	for(var i=0;i<sum;i++){
+		spanlist[i].className="";
+	}
+	spanlist[m].className="focus";
+}
+// 小圆点点击事件  
+for(var i=0;i<sum;i++){                                        
+	spanlist[i].onclick=function(){
+		if(n<this.getAttribute("index")){
+			// 更新变量状态
+			n=this.getAttribute("index")
+			m=n;
+			animation("next");
+		}
+		if(n>this.getAttribute("index")){
+			n=this.getAttribute("index");
+			m=n;
+			animation("pre");
+		}
+	}	
+}
+</script>	
+</body>
+</html>
